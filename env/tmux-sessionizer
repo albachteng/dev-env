@@ -1,0 +1,18 @@
+#!/bin/bash
+
+session=$(find ~ ~/projects/* ~/.config -mindepth 1 -maxdepth 1 -type d | fzf)
+
+if [[ -z "$session" ]]; then
+  exit 0
+fi
+
+session_name=$(basename "$session" | tr ":,. " "____")
+
+echo "session $session_name"
+
+if ! tmux has-session -t "$session_name" 2> /dev/null; then
+    tmux new-session -s "$session_name" -c "$session" -d
+	tmux send-keys -t $session_name "ready-tmux" ^M
+fi
+
+tmux switch-client -t "$session_name"

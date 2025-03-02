@@ -41,3 +41,4 @@ addToPathFront $HOME/.local/npm/bin
 addToPathFront $HOME/.local/n/bin/
 addToPathFront $HOME/.local/apps/
 addToPathFront $HOME/.local/bin/lua-language-server/bin
+addToPathFront /usr/local/bin

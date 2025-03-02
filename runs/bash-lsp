@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+echo "installing bash lsp..."
+npm instal -g bash-language-server

@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+echo "installing clangd..."
+sudo apt install -y clangd || sudo pacman -S --noconfirm clang
+echo "clanagd installed, updating path"

@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+echo "installing lua lsp..."
+
+mkdir -p ~/.local/bin
+cd ~/.local/bin
+if ! command -v wget &> /dev/null; then
+  echo "wget not found, installing..."
+  sudo apt update && sudo apt install -y wget
+fi
+wget -O lua-language-server.tar.gz https://github.com/LuaLS/lua-language-server/releases/latest/download/lua-language-server-linux-x64.tar.gz
+tar -xzf lua-language-server.tar.gz
+rm lua-language-server.tar.gz
+echo "finished installing lua lsp, updating PATH"
+
+export PATH="$HOME/.local/bin/lua-language-server/bin/:$PATH"
+

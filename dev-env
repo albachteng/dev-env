@@ -58,10 +58,9 @@ copy_dir() {
 copy_file() {
   from=$1
   to=$2
-  name=$(basename $from)
 
-  execute rm $to/$name
-  execute cp $from $to/$name
+  execute rm $to
+  execute cp $from $to
 }
 
 log "------------ dev-env ------------"
@@ -72,5 +71,5 @@ copy_dir $DEV_ENV/env/.local $HOME/.local
 copy_file $DEV_ENV/env/tmux-sessionizer $HOME/.local/scripts/tmux-sessionizer
 copy_file $DEV_ENV/env/.zsh_profile $HOME/.zsh_profile
 copy_file $DEV_ENV/env/.zshrc $HOME/.zshrc
-copy_file $DEV_ENV/env/.tmux-sessionizer $HOME/.tmux-sessionizer
+copy_file $DEV_ENV/env/tmux-sessionizer $HOME/tmux-sessionizer
 copy_file $DEV_ENV/dev-env $HOME/.local/scripts/dev-env

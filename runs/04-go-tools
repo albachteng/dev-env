@@ -13,8 +13,15 @@ echo "Installing Go development tools..."
 declare -a tools_to_install=()
 
 command -v golangci-lint &>/dev/null || tools_to_install+=("golangci-lint")
-command -v delve &>/dev/null || tools_to_install+=("delve")
+command -v staticcheck &>/dev/null || tools_to_install+=("staticcheck")
+command -v gofumpt &>/dev/null || tools_to_install+=("gofumpt")
+command -v dlv &>/dev/null || tools_to_install+=("delve")
 command -v air &>/dev/null || tools_to_install+=("air")
+command -v gotests &>/dev/null || tools_to_install+=("gotests")
+command -v impl &>/dev/null || tools_to_install+=("impl")
+command -v gomodifytags &>/dev/null || tools_to_install+=("gomodifytags")
+command -v mockgen &>/dev/null || tools_to_install+=("mockgen")
+command -v goreleaser &>/dev/null || tools_to_install+=("goreleaser")
 
 if [ ${#tools_to_install[@]} -eq 0 ]; then
     echo "All Go tools already installed, skipping"
@@ -23,10 +30,22 @@ fi
 
 echo "Installing: ${tools_to_install[*]}"
 
-# Install golangci-lint (linter)
+# Install golangci-lint (meta-linter running multiple linters)
 if [[ " ${tools_to_install[*]} " =~ " golangci-lint " ]]; then
     echo "Installing golangci-lint..."
     curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$HOME/go/bin"
+fi
+
+# Install staticcheck (state-of-the-art Go linter)
+if [[ " ${tools_to_install[*]} " =~ " staticcheck " ]]; then
+    echo "Installing staticcheck..."
+    go install honnef.co/go/tools/cmd/staticcheck@latest
+fi
+
+# Install gofumpt (stricter gofmt)
+if [[ " ${tools_to_install[*]} " =~ " gofumpt " ]]; then
+    echo "Installing gofumpt..."
+    go install mvdan.cc/gofumpt@latest
 fi
 
 # Install delve (debugger)
@@ -35,10 +54,40 @@ if [[ " ${tools_to_install[*]} " =~ " delve " ]]; then
     go install github.com/go-delve/delve/cmd/dlv@latest
 fi
 
-# Install air (live reload)
+# Install air (live reload for Go apps)
 if [[ " ${tools_to_install[*]} " =~ " air " ]]; then
     echo "Installing air..."
     go install github.com/air-verse/air@latest
+fi
+
+# Install gotests (generate Go tests)
+if [[ " ${tools_to_install[*]} " =~ " gotests " ]]; then
+    echo "Installing gotests..."
+    go install github.com/cweill/gotests/gotests@latest
+fi
+
+# Install impl (generate interface implementation stubs)
+if [[ " ${tools_to_install[*]} " =~ " impl " ]]; then
+    echo "Installing impl..."
+    go install github.com/josharian/impl@latest
+fi
+
+# Install gomodifytags (modify struct field tags)
+if [[ " ${tools_to_install[*]} " =~ " gomodifytags " ]]; then
+    echo "Installing gomodifytags..."
+    go install github.com/fatih/gomodifytags@latest
+fi
+
+# Install mockgen (generate mocks for testing)
+if [[ " ${tools_to_install[*]} " =~ " mockgen " ]]; then
+    echo "Installing mockgen..."
+    go install go.uber.org/mock/mockgen@latest
+fi
+
+# Install goreleaser (release automation)
+if [[ " ${tools_to_install[*]} " =~ " goreleaser " ]]; then
+    echo "Installing goreleaser..."
+    go install github.com/goreleaser/goreleaser@latest
 fi
 
 echo "Go tools installed successfully"

@@ -2,6 +2,15 @@
 
 set -euo pipefail
 
+# Color definitions
+COLOR_RESET="\033[0m"
+COLOR_BOLD="\033[1m"
+COLOR_GREEN="\033[0;32m"
+COLOR_YELLOW="\033[0;33m"
+COLOR_BLUE="\033[0;34m"
+COLOR_CYAN="\033[0;36m"
+COLOR_RED="\033[0;31m"
+
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 filter=""
@@ -35,21 +44,33 @@ done
 
 log() {
   if [[ $dry == "1" ]]; then
-	echo "[DRY_RUN]: $*"
+	echo -e "${COLOR_YELLOW}[DRY_RUN]:${COLOR_RESET} $*"
   else
-	echo "$*"
+	echo -e "${COLOR_CYAN}$*${COLOR_RESET}"
   fi
 }
 
 execute() {
-  log "execute $*"
+  local script_name=$(basename "$1")
+  echo -e "\n${COLOR_BOLD}${COLOR_BLUE}==>${COLOR_RESET} ${COLOR_BOLD}Running: $script_name${COLOR_RESET}"
+
   if [[ $dry == "1" ]]; then
-	return
+	return 0
   fi
-  "$@"
+
+  if "$@"; then
+    echo -e "${COLOR_GREEN}✓${COLOR_RESET} ${COLOR_BOLD}$script_name${COLOR_RESET} ${COLOR_GREEN}completed successfully${COLOR_RESET}"
+    return 0
+  else
+    echo -e "${COLOR_RED}✗${COLOR_RESET} ${COLOR_BOLD}$script_name${COLOR_RESET} ${COLOR_RED}failed${COLOR_RESET}"
+    return 1
+  fi
 }
 
-log "$script_dir -- filter: '$filter' choose: '$choose'"
+echo -e "${COLOR_BOLD}${COLOR_CYAN}========================================${COLOR_RESET}"
+echo -e "${COLOR_BOLD}${COLOR_CYAN}  dev-env installation${COLOR_RESET}"
+echo -e "${COLOR_BOLD}${COLOR_CYAN}========================================${COLOR_RESET}"
+log "filter: '$filter' | choose: '$choose'"
 
 cd "$script_dir"
 
@@ -59,7 +80,7 @@ for script in $scripts; do
   # If choose is set, only run scripts matching the pattern
   if [[ -n "$choose" ]]; then
     if ! echo "$script" | grep -q "$choose"; then
-      log "not chosen: $script"
+      log "⊘ not chosen: $script"
       continue
     fi
   fi
@@ -67,10 +88,14 @@ for script in $scripts; do
   # If filter is set, skip scripts matching the pattern
   if [[ -n "$filter" ]]; then
     if echo "$script" | grep -q "$filter"; then
-      log "filtering: $script"
+      log "⊗ filtering: $script"
       continue
     fi
   fi
 
   execute "$script"
 done
+
+echo -e "\n${COLOR_BOLD}${COLOR_GREEN}========================================${COLOR_RESET}"
+echo -e "${COLOR_BOLD}${COLOR_GREEN}  Installation complete!${COLOR_RESET}"
+echo -e "${COLOR_BOLD}${COLOR_GREEN}========================================${COLOR_RESET}"

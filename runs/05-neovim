@@ -20,11 +20,22 @@ if [ ! -d "$HOME/neovim" ]; then
   git clone https://github.com/neovim/neovim.git "$HOME/neovim"
 fi
 
-sudo apt -y install cmake gettext lua5.1 liblua5.1-0-dev
+# Install build dependencies
+sudo apt -y install \
+    cmake \
+    gettext \
+    lua5.1 \
+    liblua5.1-0-dev \
+    libvterm-dev \
+    libtree-sitter-dev \
+    libunibilium-dev \
+    libmsgpack-dev
 
 git -C "$HOME/neovim" fetch --all
 git -C "$HOME/neovim" checkout "$version"
 
-make -C "$HOME/neovim" clean
+# Clean build and deps directories to avoid cache issues
+rm -rf "$HOME/neovim/build" "$HOME/neovim/.deps"
+
 make -C "$HOME/neovim" CMAKE_BUILD_TYPE=RelWithDebInfo
 sudo make -C "$HOME/neovim" install

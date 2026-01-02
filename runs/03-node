@@ -11,4 +11,12 @@ fi
 sudo apt install -y nodejs npm
 npm config set prefix "$HOME/.local/npm"
 npm i -g n
+
+# Configure n to install to user directory
+export N_PREFIX="$HOME/.local/n"
+mkdir -p "$N_PREFIX"
+
+# Add npm bin and n bin to PATH for this session
+export PATH="$HOME/.local/npm/bin:$N_PREFIX/bin:$PATH"
+
 n lts

@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-echo "installing TypeScript LSP"
-sudo npm install -g typescript typescript-language-server
-

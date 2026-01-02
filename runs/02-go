@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+GO_VERSION="${GO_VERSION:-1.22.0}"
+
+if command -v go &>/dev/null; then
+    installed_version=$(go version | awk '{print $3}' | sed 's/go//')
+    echo "Go already installed (version $installed_version)"
+
+    # Check if we want to upgrade
+    if [ "$installed_version" = "$GO_VERSION" ]; then
+        echo "Desired version already installed, skipping"
+        exit 0
+    fi
+    echo "Installing version $GO_VERSION..."
+fi
+
+echo "Installing Go $GO_VERSION..."
+
+# Download and install Go
+cd /tmp
+wget "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz"
+
+# Remove old installation and install new
+sudo rm -rf /usr/local/go
+sudo tar -C /usr/local -xzf "go${GO_VERSION}.linux-amd64.tar.gz"
+rm "go${GO_VERSION}.linux-amd64.tar.gz"
+
+# Ensure Go is in PATH for this session
+export PATH="$PATH:/usr/local/go/bin"
+export GOPATH="$HOME/go"
+export PATH="$PATH:$GOPATH/bin"
+
+echo "Go $GO_VERSION installed successfully"
+go version

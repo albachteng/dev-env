@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# Check if n is already installed and node is at LTS
+if command -v n &>/dev/null && command -v node &>/dev/null; then
+    echo "Node.js and n already installed, skipping"
+    exit 0
+fi
+
+sudo apt install -y nodejs npm
+npm config set prefix "$HOME/.local/npm"
+npm i -g n
+n lts

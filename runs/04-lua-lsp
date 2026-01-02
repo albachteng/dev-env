@@ -1,17 +1,26 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
+if [ -d "$HOME/.local/bin/lua-language-server" ]; then
+    echo "lua-language-server already installed, skipping"
+    exit 0
+fi
+
 echo "installing lua lsp..."
 
-mkdir -p ~/.local/bin
-cd ~/.local/bin
-if ! command -v wget &> /dev/null; then
+mkdir -p "$HOME/.local/bin"
+cd "$HOME/.local/bin"
+
+if ! command -v wget &>/dev/null; then
   echo "wget not found, installing..."
   sudo apt update && sudo apt install -y wget
 fi
+
 wget -O lua-language-server.tar.gz https://github.com/LuaLS/lua-language-server/releases/download/3.13.6/lua-language-server-3.13.6-linux-x64.tar.gz
 tar -xzf lua-language-server.tar.gz
 rm lua-language-server.tar.gz
-echo "finished installing lua lsp, updating PATH"
+echo "finished installing lua lsp"
 
 export PATH="$HOME/.local/bin/lua-language-server/bin/:$PATH"
 

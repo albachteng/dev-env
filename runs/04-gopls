@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if command -v gopls &>/dev/null; then
+    echo "gopls already installed, skipping"
+    exit 0
+fi
+
+if ! command -v go &>/dev/null; then
+    echo "Error: go not found. Please install Go first."
+    exit 1
+fi
+
+echo "Installing gopls (Go language server)..."
+go install golang.org/x/tools/gopls@latest
+
+echo "gopls installed successfully"

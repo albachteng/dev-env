@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if command -v tmux &>/dev/null; then
+    echo "tmux already installed, skipping"
+    exit 0
+fi
+
+sudo apt install -y tmux

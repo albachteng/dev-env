@@ -1,5 +1,5 @@
 VIM="nvim"
-DEV_ENV=$HOME/dev
+DEV_ENV="$HOME/dev-env"
 
 ## All that sweet sweet fzf
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
@@ -34,11 +34,19 @@ addToPathFront() {
     fi
 }
 
+# Go paths
+export GOPATH="$HOME/go"
+addToPathFront /usr/local/go/bin
+addToPathFront "$GOPATH/bin"
+
+# Node and npm paths
 addToPathFront $HOME/.local/.npm-global/bin
 addToPathFront $HOME/.local/scripts
 addToPathFront $HOME/.local/bin
 addToPathFront $HOME/.local/npm/bin
 addToPathFront $HOME/.local/n/bin/
+
+# Other development tools
 addToPathFront $HOME/.local/apps/
 addToPathFront $HOME/.local/bin/lua-language-server/bin
 addToPathFront /usr/local/bin

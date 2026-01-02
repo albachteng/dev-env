@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if command -v clangd &>/dev/null; then
+    echo "clangd already installed, skipping"
+    exit 0
+fi
+
+echo "installing clangd..."
+if command -v apt &>/dev/null; then
+    sudo apt install -y clangd
+elif command -v pacman &>/dev/null; then
+    sudo pacman -S --noconfirm clang
+else
+    echo "Error: unsupported package manager"
+    exit 1
+fi
+echo "clangd installed"

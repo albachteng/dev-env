@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if ! command -v go &>/dev/null; then
+    echo "Error: Go not found. Please install Go first."
+    exit 1
+fi
+
+echo "Installing Go development tools..."
+
+# Check what's already installed
+declare -a tools_to_install=()
+
+command -v golangci-lint &>/dev/null || tools_to_install+=("golangci-lint")
+command -v delve &>/dev/null || tools_to_install+=("delve")
+command -v air &>/dev/null || tools_to_install+=("air")
+
+if [ ${#tools_to_install[@]} -eq 0 ]; then
+    echo "All Go tools already installed, skipping"
+    exit 0
+fi
+
+echo "Installing: ${tools_to_install[*]}"
+
+# Install golangci-lint (linter)
+if [[ " ${tools_to_install[*]} " =~ " golangci-lint " ]]; then
+    echo "Installing golangci-lint..."
+    curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$HOME/go/bin"
+fi
+
+# Install delve (debugger)
+if [[ " ${tools_to_install[*]} " =~ " delve " ]]; then
+    echo "Installing delve..."
+    go install github.com/go-delve/delve/cmd/dlv@latest
+fi
+
+# Install air (live reload)
+if [[ " ${tools_to_install[*]} " =~ " air " ]]; then
+    echo "Installing air..."
+    go install github.com/cosmtrek/air@latest
+fi
+
+echo "Go tools installed successfully"

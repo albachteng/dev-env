@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if command -v typescript-language-server &>/dev/null; then
+    echo "typescript-language-server already installed, skipping"
+    exit 0
+fi
+
+if ! command -v npm &>/dev/null; then
+    echo "Error: npm not found. Please install node first."
+    exit 1
+fi
+
+echo "installing TypeScript LSP"
+sudo npm install -g typescript typescript-language-server
+

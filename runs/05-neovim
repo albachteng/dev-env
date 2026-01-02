@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+version="${NVIM_VERSION:-v0.10.2}"
+
+echo "Installing neovim version: $version"
+
+# Check if already installed with the right version
+if command -v nvim &>/dev/null; then
+    installed_version=$(nvim --version | head -n1 | awk '{print $2}')
+    if [ "$installed_version" = "$version" ]; then
+        echo "neovim $version already installed, skipping"
+        exit 0
+    fi
+    echo "Different version installed ($installed_version), will build $version"
+fi
+
+if [ ! -d "$HOME/neovim" ]; then
+  git clone https://github.com/neovim/neovim.git "$HOME/neovim"
+fi
+
+sudo apt -y install cmake gettext lua5.1 liblua5.1-0-dev
+
+git -C "$HOME/neovim" fetch --all
+git -C "$HOME/neovim" checkout "$version"
+
+make -C "$HOME/neovim" clean
+make -C "$HOME/neovim" CMAKE_BUILD_TYPE=RelWithDebInfo
+sudo make -C "$HOME/neovim" install

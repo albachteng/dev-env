@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if command -v bash-language-server &>/dev/null; then
+    echo "bash-language-server already installed, skipping"
+    exit 0
+fi
+
+if ! command -v npm &>/dev/null; then
+    echo "Error: npm not found. Please install node first."
+    exit 1
+fi
+
+echo "installing bash lsp..."
+sudo npm install -g bash-language-server

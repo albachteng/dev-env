@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# Use environment variables or defaults
+GIT_USER_EMAIL="${GIT_USER_EMAIL:-albachteng@gmail.com}"
+GIT_USER_NAME="${GIT_USER_NAME:-albachteng}"
+
+# Only set if not already configured
+current_email=$(git config --global user.email 2>/dev/null || echo "")
+current_name=$(git config --global user.name 2>/dev/null || echo "")
+
+if [ -z "$current_email" ]; then
+    echo "Setting git user.email to $GIT_USER_EMAIL"
+    git config --global user.email "$GIT_USER_EMAIL"
+else
+    echo "git user.email already set to: $current_email"
+fi
+
+if [ -z "$current_name" ]; then
+    echo "Setting git user.name to $GIT_USER_NAME"
+    git config --global user.name "$GIT_USER_NAME"
+else
+    echo "git user.name already set to: $current_name"
+fi

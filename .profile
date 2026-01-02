@@ -1,2 +1,2 @@
-PATH="$PATH:~/.local/scripts"   # appending
-PATH="$PATH:~/.local/bin"   # appending
+PATH="$PATH:$HOME/.local/scripts"   # appending
+PATH="$PATH:$HOME/.local/bin"   # appending

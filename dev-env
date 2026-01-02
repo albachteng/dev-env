@@ -1,18 +1,20 @@
 #!/usr/bin/env bash
 
-script_dir=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)
+set -euo pipefail
+
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 filter=""
 dry="0"
 
-if [ -z "$DEV_ENV" ]; then
+if [ -z "${DEV_ENV:-}" ]; then
     echo "env var DEV_ENV needs to be present"
-	export DEV_ENV=$HOME/dev-env
+	export DEV_ENV="$HOME/dev-env"
     echo "DEV_ENV defaulting to $HOME/dev-env"
-	echo $DEV_ENV
+	echo "$DEV_ENV"
 fi
 
-while [[ $# > 0 ]]; do
+while [[ $# -gt 0 ]]; do
   if [[ $1 == "--dry" ]]; then
 	dry="1"
   else
@@ -23,32 +25,42 @@ done
 
 log() {
   if [[ $dry == "1" ]]; then
-	echo "[DRY_RUN]: $@"
-  else 
-	echo "$@"
+	echo "[DRY_RUN]: $*"
+  else
+	echo "$*"
   fi
 }
 
 execute() {
-  log "execute $@"
+  log "execute $*"
   if [[ $dry == "1" ]]; then
 	return
   fi
   "$@"
 }
 
-copy_dir() {
-  from=$1
-  to=$2
+backup_if_exists() {
+  local target="$1"
+  if [ -e "$target" ]; then
+    local backup="${target}.backup.$(date +%s)"
+    log "Backing up $target to $backup"
+    execute mv "$target" "$backup"
+  fi
+}
 
-  pushd $from > /dev/null
+copy_dir() {
+  local from="${1:?source directory required}"
+  local to="${2:?destination directory required}"
+
+  pushd "$from" > /dev/null
+  local dirs
   dirs=$(find . -mindepth 1 -maxdepth 1 -type d)
   for dir in $dirs; do
-	if [[ $dir == $filter ]]; then
+	if [[ $dir == "$filter" ]]; then
 	  log "[FILTERING] $dir"
 	else
-	  execute rm -rf $to/$dir
-	  execute cp -r $dir $to/$dir
+	  backup_if_exists "${to}/${dir}"
+	  execute cp -r "$dir" "${to}/${dir}"
 	fi
   done
   popd > /dev/null
@@ -56,20 +68,21 @@ copy_dir() {
 }
 
 copy_file() {
-  from=$1
-  to=$2
+  local from="${1:?source file required}"
+  local to="${2:?destination file required}"
 
-  execute rm $to
-  execute cp $from $to
+  backup_if_exists "$to"
+  execute cp "$from" "$to"
 }
 
 log "------------ dev-env ------------"
 
-copy_dir $DEV_ENV/env/.config $HOME/.config
-copy_dir $DEV_ENV/env/.local $HOME/.local
+copy_dir "$DEV_ENV/env/.config" "$HOME/.config"
+copy_dir "$DEV_ENV/env/.local" "$HOME/.local"
 
-copy_file $DEV_ENV/env/tmux-sessionizer $HOME/.local/scripts/tmux-sessionizer
-copy_file $DEV_ENV/env/.zsh_profile $HOME/.zsh_profile
-copy_file $DEV_ENV/env/.zshrc $HOME/.zshrc
-copy_file $DEV_ENV/env/tmux-sessionizer $HOME/tmux-sessionizer
-copy_file $DEV_ENV/dev-env $HOME/.local/scripts/dev-env
+copy_file "$DEV_ENV/env/tmux-sessionizer" "$HOME/.local/scripts/tmux-sessionizer"
+copy_file "$DEV_ENV/env/.zsh_profile" "$HOME/.zsh_profile"
+copy_file "$DEV_ENV/env/.zshrc" "$HOME/.zshrc"
+copy_file "$DEV_ENV/env/.ready-tmux" "$HOME/.ready-tmux"
+copy_file "$DEV_ENV/env/tmux-sessionizer" "$HOME/tmux-sessionizer"
+copy_file "$DEV_ENV/dev-env" "$HOME/.local/scripts/dev-env"

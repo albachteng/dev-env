@@ -1,4 +1,0 @@
-#!/usr/bin/env bash
-
-echo "installing bash lsp..."
-sudo npm install -g bash-language-server

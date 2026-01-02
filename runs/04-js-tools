@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if ! command -v npm &>/dev/null; then
+    echo "Error: npm not found. Please install node first."
+    exit 1
+fi
+
+echo "Installing JavaScript/TypeScript development tools..."
+
+# Check what's already installed
+declare -a tools_to_install=()
+
+command -v pnpm &>/dev/null || tools_to_install+=("pnpm")
+command -v yarn &>/dev/null || tools_to_install+=("yarn")
+
+if [ ${#tools_to_install[@]} -eq 0 ]; then
+    echo "All JS tools already installed, skipping"
+    exit 0
+fi
+
+echo "Installing: ${tools_to_install[*]}"
+
+# Install pnpm (fast package manager)
+if [[ " ${tools_to_install[*]} " =~ " pnpm " ]]; then
+    echo "Installing pnpm..."
+    npm install -g pnpm
+fi
+
+# Install yarn (alternative package manager)
+if [[ " ${tools_to_install[*]} " =~ " yarn " ]]; then
+    echo "Installing yarn..."
+    npm install -g yarn
+fi
+
+echo "JavaScript tools installed successfully"

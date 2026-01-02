@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if command -v ansible &>/dev/null; then
+    echo "ansible already installed, skipping"
+    exit 0
+fi
+
+sudo pip3 install ansible

@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+# Default ready-tmux script - executed when starting a new tmux session
+# This can be overridden by a local .ready-tmux in the project directory
+
+# Check if there's a local .ready-tmux script (checked by ready-tmux wrapper)
+# If we're here, we're using the default behavior
+
+# Get current tmux session info
+SESSION=$(tmux display-message -p '#S' 2>/dev/null)
+
+if [ -n "$SESSION" ]; then
+  # We're in tmux - set up automation to run after nvim starts
+  (
+    # Wait for neovim to fully load
+    sleep 1.5
+
+    # Open terminal panel with <space>st
+    tmux send-keys -t "$SESSION" " st"
+
+    # Wait for terminal to open
+    sleep 0.5
+
+    # Run git status and log in the terminal
+    tmux send-keys -t "$SESSION" "git status && echo && git log --oneline -20" C-m
+
+    # Wait a moment for commands to display
+    sleep 0.3
+
+    # Create a new tmux window
+    tmux new-window -t "$SESSION"
+
+    # Switch back to the first window where nvim is running
+    tmux select-window -t "$SESSION:0"
+  ) &
+fi
+
+# Start neovim in the project root (this will block until nvim exits)
+exec nvim .

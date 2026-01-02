@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+echo "Installing base libraries and tools..."
+sudo apt -y update
+sudo apt -y install \
+    git \
+    curl \
+    wget \
+    build-essential \
+    pkg-config \
+    ripgrep \
+    xclip \
+    jq \
+    python3-pip \
+    htop \
+    tree \
+    shellcheck \
+    fd-find \
+    bat \
+    silversearcher-ag \
+    net-tools \
+    strace \
+    valgrind \
+    ccache \
+    ninja-build
+
+# Create symlinks for tools with different names in Ubuntu
+mkdir -p "$HOME/.local/bin"
+
+if ! command -v fd &>/dev/null && command -v fdfind &>/dev/null; then
+    ln -sf "$(which fdfind)" "$HOME/.local/bin/fd"
+    echo "Created symlink: fd -> fdfind"
+fi
+
+if ! command -v bat &>/dev/null && command -v batcat &>/dev/null; then
+    ln -sf "$(which batcat)" "$HOME/.local/bin/bat"
+    echo "Created symlink: bat -> batcat"
+fi
+
+# Configure ccache
+if command -v ccache &>/dev/null; then
+    ccache --max-size=5G 2>/dev/null || true
+    echo "Ccache configured with 5GB cache"
+fi
+
+# Install fzf if not already installed
+if [ ! -d "$HOME/fzf" ]; then
+    echo "Installing fzf..."
+    git clone https://github.com/junegunn/fzf.git "$HOME/fzf"
+    "$HOME/fzf/install" --all --no-update-rc
+else
+    echo "fzf already installed, skipping"
+fi

@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if [ -f "$HOME/.gdbinit-gef.py" ]; then
+    echo "GEF already installed, skipping"
+    exit 0
+fi
+
+echo "Installing GEF (GDB Enhanced Features)..."
+install_script=$(curl -fsSL https://gef.blah.cat/sh)
+if [ -z "$install_script" ]; then
+    echo "Failed to download GEF installer"
+    exit 1
+fi
+bash -c "$install_script"

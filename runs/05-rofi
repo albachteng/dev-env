@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if command -v rofi &>/dev/null; then
+    echo "rofi already installed, skipping"
+    exit 0
+fi
+
+sudo apt install -y rofi

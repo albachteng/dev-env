@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+echo "Installing TUI (Terminal UI) tools..."
+
+# Install lazygit
+if ! command -v lazygit &>/dev/null; then
+    echo "Installing lazygit..."
+    LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
+    cd /tmp
+    curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+    tar xf lazygit.tar.gz lazygit
+    sudo install lazygit /usr/local/bin
+    rm lazygit lazygit.tar.gz
+else
+    echo "lazygit already installed"
+fi
+
+# Install dive (Docker image explorer)
+if ! command -v dive &>/dev/null; then
+    echo "Installing dive..."
+    cd /tmp
+    curl -Lo dive.deb "https://github.com/wagoodman/dive/releases/download/v0.12.0/dive_0.12.0_linux_amd64.deb"
+    sudo dpkg -i dive.deb
+    rm dive.deb
+else
+    echo "dive already installed"
+fi
+
+# Install jqp (interactive jq)
+if ! command -v jqp &>/dev/null; then
+    echo "Installing jqp..."
+    if command -v go &>/dev/null; then
+        go install github.com/noahgorstein/jqp@latest
+    else
+        echo "Warning: Go not found, skipping jqp installation"
+    fi
+else
+    echo "jqp already installed"
+fi
+
+echo "TUI tools installed successfully"
+echo "  - lazygit: Beautiful git TUI (run: lazygit)"
+echo "  - dive: Explore Docker images (run: dive <image>)"
+echo "  - jqp: Interactive jq (run: jqp)"

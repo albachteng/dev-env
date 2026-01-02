@@ -1,46 +1,76 @@
 #!/usr/bin/env bash
 
-script_dir=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)
+set -euo pipefail
+
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 filter=""
+choose=""
 dry="0"
 
-while [[ $# > 0 ]]; do
-  if [[ $1 == "--dry" ]]; then
-	dry="1"
-  else
-	filter="$1"
-  fi
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --dry)
+      dry="1"
+      ;;
+    --filter)
+      shift
+      filter="$1"
+      ;;
+    --choose)
+      shift
+      choose="$1"
+      ;;
+    *)
+      echo "Unknown option: $1"
+      echo "Usage: $0 [--dry] [--filter PATTERN] [--choose PATTERN]"
+      echo "  --dry: Show what would be executed without running"
+      echo "  --filter PATTERN: Skip scripts matching PATTERN"
+      echo "  --choose PATTERN: Only run scripts matching PATTERN"
+      exit 1
+      ;;
+  esac
   shift
 done
 
 log() {
   if [[ $dry == "1" ]]; then
-	echo "[DRY_RUN]: $@"
-  else 
-	echo "$@"
+	echo "[DRY_RUN]: $*"
+  else
+	echo "$*"
   fi
 }
 
 execute() {
-  log "execute $@"
+  log "execute $*"
   if [[ $dry == "1" ]]; then
 	return
   fi
   "$@"
 }
 
-log "$script_dir -- $filter"
+log "$script_dir -- filter: '$filter' choose: '$choose'"
 
-cd $script_dir 
+cd "$script_dir"
 
-scripts=$(find ./runs -maxdepth 1 -mindepth 1 -executable -type f)
+scripts=$(find ./runs -maxdepth 1 -mindepth 1 -executable -type f | sort)
 
 for script in $scripts; do
-  if  echo "$script" | grep -qv "$filter"; then
-	log "filtering $script"
-	continue
+  # If choose is set, only run scripts matching the pattern
+  if [[ -n "$choose" ]]; then
+    if ! echo "$script" | grep -q "$choose"; then
+      log "not chosen: $script"
+      continue
+    fi
   fi
 
-  execute $script
+  # If filter is set, skip scripts matching the pattern
+  if [[ -n "$filter" ]]; then
+    if echo "$script" | grep -q "$filter"; then
+      log "filtering: $script"
+      continue
+    fi
+  fi
+
+  execute "$script"
 done

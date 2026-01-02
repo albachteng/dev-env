@@ -30,8 +30,8 @@ if [ -n "$SESSION" ]; then
     # Create a new tmux window
     tmux new-window -t "$SESSION"
 
-    # Switch back to the first window where nvim is running
-    tmux select-window -t "$SESSION:0"
+	# Switch back to the first window where nvim is running (NOTE: my tmux config uses 1-indexing for ergonomics)
+    tmux select-window -t "$SESSION:1"
   ) &
 fi
 

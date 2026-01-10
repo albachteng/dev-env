@@ -9,6 +9,7 @@ A modular, idempotent development environment setup system for quickly bootstrap
 - **Dependency-ordered**: Scripts are prefixed with numbers to ensure correct installation order
 - **Flexible filtering**: Choose specific tools to install or filter out unwanted ones
 - **Automatic backups**: Configuration files are backed up before being replaced
+- **Teardown/reset capability**: Clean up installations and restore original configs
 - **Cross-platform ready**: Some scripts support multiple package managers (apt, pacman)
 - **Error handling**: All scripts use `set -euo pipefail` for safer execution
 
@@ -38,6 +39,7 @@ cd ~/dev-env
 dev-env/
 ├── dev-env              # Config deployment script
 ├── run                  # Installation orchestrator
+├── teardown             # Teardown/reset script
 ├── .profile             # Shell profile additions
 ├── runs/                # Individual installation scripts
 │   ├── 01-libs          # Base tools (git, curl, build-essential, etc.)
@@ -141,6 +143,33 @@ The `dev-env` script copies configuration files from `env/` to your home directo
 ```
 
 Configuration files are automatically backed up with a timestamp before being replaced.
+
+### Teardown/Reset Environment
+
+The `teardown` script removes config files and user-space installations, perfect for cleaning up after working on a remote server:
+
+```bash
+# Preview what would be removed (recommended first step)
+./teardown --dry
+
+# Remove everything and restore backups
+./teardown
+
+# Skip confirmation prompt
+./teardown --force
+```
+
+**What gets removed:**
+- Config files (.zshrc, .zsh_profile, tmux.conf, scripts)
+- User-space installations (~/fzf, ~/.oh-my-zsh, ~/neovim, ~/go, ~/.local/npm, ~/.local/n)
+- Symlinks (~/.local/bin/fd, ~/.local/bin/bat)
+- Backed-up configs are restored automatically
+
+**What stays:**
+- System packages installed via apt (safe to leave for other users/tools)
+- Default shell setting (you can manually reset with `chsh -s /bin/bash`)
+
+This is ideal for quick setup/teardown cycles on remote servers or test environments.
 
 ## Environment Variables
 

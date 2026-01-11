@@ -1,0 +1,217 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# Color definitions
+COLOR_RESET="\033[0m"
+COLOR_BOLD="\033[1m"
+COLOR_GREEN="\033[0;32m"
+COLOR_YELLOW="\033[0;33m"
+COLOR_BLUE="\033[0;34m"
+COLOR_CYAN="\033[0;36m"
+COLOR_RED="\033[0;31m"
+COLOR_MAGENTA="\033[0;35m"
+
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+
+dry="0"
+force="0"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --dry)
+      dry="1"
+      ;;
+    --force)
+      force="1"
+      ;;
+    *)
+      echo "Unknown option: $1"
+      echo "Usage: $0 [--dry] [--force]"
+      echo "  --dry: Show what would be removed without actually removing"
+      echo "  --force: Skip confirmation prompts"
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+log() {
+  if [[ $dry == "1" ]]; then
+    echo -e "${COLOR_YELLOW}[DRY_RUN]:${COLOR_RESET} $*"
+  else
+    echo -e "${COLOR_CYAN}$*${COLOR_RESET}"
+  fi
+}
+
+warn() {
+  echo -e "${COLOR_YELLOW}⚠${COLOR_RESET}  $*"
+}
+
+success() {
+  echo -e "${COLOR_GREEN}✓${COLOR_RESET}  $*"
+}
+
+section() {
+  echo -e "\n${COLOR_BOLD}${COLOR_BLUE}==>${COLOR_RESET} ${COLOR_BOLD}$*${COLOR_RESET}"
+}
+
+remove_file() {
+  local target="$1"
+  local expanded="${target/#\~/$HOME}"
+
+  if [ -e "$expanded" ] || [ -L "$expanded" ]; then
+    log "Removing: $target"
+    if [[ $dry == "0" ]]; then
+      rm -f "$expanded"
+      success "Removed: $target"
+    fi
+  else
+    log "Not found (skipping): $target"
+  fi
+}
+
+remove_dir() {
+  local target="$1"
+  local expanded="${target/#\~/$HOME}"
+
+  if [ -d "$expanded" ]; then
+    log "Removing directory: $target"
+    if [[ $dry == "0" ]]; then
+      rm -rf "$expanded"
+      success "Removed: $target"
+    fi
+  else
+    log "Not found (skipping): $target"
+  fi
+}
+
+restore_backup() {
+  local target="$1"
+  local expanded="${target/#\~/$HOME}"
+
+  # Find the most recent backup
+  local backup
+  backup=$(find "$(dirname "$expanded")" -maxdepth 1 -name "$(basename "$expanded").backup.*" 2>/dev/null | sort -r | head -n1 || true)
+
+  if [ -n "$backup" ]; then
+    log "Restoring backup: $backup → $target"
+    if [[ $dry == "0" ]]; then
+      mv "$backup" "$expanded"
+      success "Restored: $target"
+    fi
+  fi
+}
+
+echo -e "${COLOR_BOLD}${COLOR_MAGENTA}========================================${COLOR_RESET}"
+echo -e "${COLOR_BOLD}${COLOR_MAGENTA}  dev-env teardown${COLOR_RESET}"
+echo -e "${COLOR_BOLD}${COLOR_MAGENTA}========================================${COLOR_RESET}"
+
+if [[ $dry == "1" ]]; then
+  warn "DRY RUN MODE - No changes will be made"
+fi
+
+# Show what will be removed
+echo ""
+echo "This will remove:"
+echo -e "  ${COLOR_CYAN}Config files:${COLOR_RESET}"
+echo "    - Shell configs (.zshrc, .zsh_profile)"
+echo "    - Tmux configs (.config/tmux/tmux.conf)"
+echo "    - Scripts (.local/scripts/*, tmux-sessionizer, .ready-tmux)"
+echo ""
+echo -e "  ${COLOR_CYAN}User-space installations:${COLOR_RESET}"
+echo "    - ~/fzf"
+echo "    - ~/.oh-my-zsh"
+echo "    - ~/neovim (git clone)"
+echo "    - ~/.local/npm"
+echo "    - ~/.local/n"
+echo "    - ~/go"
+echo ""
+echo -e "  ${COLOR_CYAN}Symlinks:${COLOR_RESET}"
+echo "    - ~/.local/bin/fd"
+echo "    - ~/.local/bin/bat"
+echo ""
+echo -e "  ${COLOR_YELLOW}Backups will be restored where available${COLOR_RESET}"
+echo -e "  ${COLOR_GREEN}System packages (apt) will NOT be removed${COLOR_RESET}"
+echo ""
+
+if [[ $force == "0" && $dry == "0" ]]; then
+  read -p "Continue with teardown? [y/N] " -n 1 -r
+  echo
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    echo "Teardown cancelled"
+    exit 0
+  fi
+fi
+
+# Remove config files and restore backups
+section "Removing config files"
+
+remove_file "~/.zshrc"
+restore_backup "~/.zshrc"
+
+remove_file "~/.zsh_profile"
+restore_backup "~/.zsh_profile"
+
+remove_file "~/.config/tmux/tmux.conf"
+restore_backup "~/.config/tmux/tmux.conf"
+
+remove_file "~/.ready-tmux"
+restore_backup "~/.ready-tmux"
+
+remove_file "~/tmux-sessionizer"
+restore_backup "~/tmux-sessionizer"
+
+# Remove scripts
+section "Removing scripts"
+
+remove_file "~/.local/scripts/tmux-sessionizer"
+remove_file "~/.local/scripts/dev-env"
+remove_file "~/.local/scripts/ready-tmux"
+
+# Remove symlinks
+section "Removing symlinks"
+
+remove_file "~/.local/bin/fd"
+remove_file "~/.local/bin/bat"
+
+# Remove user-space installations
+section "Removing user-space installations"
+
+remove_dir "~/fzf"
+remove_dir "~/.oh-my-zsh"
+remove_dir "~/neovim"
+remove_dir "~/.local/npm"
+remove_dir "~/.local/n"
+remove_dir "~/go"
+
+# Clean up empty directories
+section "Cleaning up empty directories"
+
+if [ -d "$HOME/.config/tmux" ] && [ -z "$(ls -A "$HOME/.config/tmux" 2>/dev/null)" ]; then
+  remove_dir "~/.config/tmux"
+fi
+
+if [ -d "$HOME/.local/scripts" ] && [ -z "$(ls -A "$HOME/.local/scripts" 2>/dev/null)" ]; then
+  remove_dir "~/.local/scripts"
+fi
+
+if [ -d "$HOME/.local/bin" ] && [ -z "$(ls -A "$HOME/.local/bin" 2>/dev/null)" ]; then
+  remove_dir "~/.local/bin"
+fi
+
+echo -e "\n${COLOR_BOLD}${COLOR_GREEN}========================================${COLOR_RESET}"
+if [[ $dry == "1" ]]; then
+  echo -e "${COLOR_BOLD}${COLOR_YELLOW}  Dry run complete${COLOR_RESET}"
+  echo -e "${COLOR_BOLD}${COLOR_YELLOW}  Run without --dry to apply changes${COLOR_RESET}"
+else
+  echo -e "${COLOR_BOLD}${COLOR_GREEN}  Teardown complete!${COLOR_RESET}"
+fi
+echo -e "${COLOR_BOLD}${COLOR_GREEN}========================================${COLOR_RESET}"
+
+if [[ $dry == "0" ]]; then
+  echo ""
+  warn "Note: System packages installed via apt are still present"
+  warn "Note: You may want to reset your shell: 'chsh -s /bin/bash' if zsh was set as default"
+  echo ""
+fi

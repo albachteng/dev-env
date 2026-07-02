@@ -16,20 +16,29 @@ if command -v nvim &>/dev/null; then
     echo "Different version installed ($installed_version), will build $version"
 fi
 
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck source=../lib/platform.sh
+source "$script_dir/../lib/platform.sh"
+
 if [ ! -d "$HOME/neovim" ]; then
   git clone https://github.com/neovim/neovim.git "$HOME/neovim"
 fi
 
 # Install build dependencies
-sudo apt -y install \
-    cmake \
-    gettext \
-    lua5.1 \
-    liblua5.1-0-dev \
-    libvterm-dev \
-    libtree-sitter-dev \
-    libunibilium-dev \
-    libmsgpack-dev
+if is_macos; then
+    ensure_brew
+    brew install cmake gettext ninja
+else
+    sudo apt -y install \
+        cmake \
+        gettext \
+        lua5.1 \
+        liblua5.1-0-dev \
+        libvterm-dev \
+        libtree-sitter-dev \
+        libunibilium-dev \
+        libmsgpack-dev
+fi
 
 git -C "$HOME/neovim" fetch --all
 git -C "$HOME/neovim" checkout "$version"

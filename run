@@ -30,12 +30,16 @@ while [[ $# -gt 0 ]]; do
       shift
       choose="$1"
       ;;
+    --mac)
+      export PLATFORM="macos"
+      ;;
     *)
       echo "Unknown option: $1"
-      echo "Usage: $0 [--dry] [--filter PATTERN] [--choose PATTERN]"
+      echo "Usage: $0 [--dry] [--filter PATTERN] [--choose PATTERN] [--mac]"
       echo "  --dry: Show what would be executed without running"
       echo "  --filter PATTERN: Skip scripts matching PATTERN"
       echo "  --choose PATTERN: Only run scripts matching PATTERN"
+      echo "  --mac: Force macOS mode (default: auto-detected via uname)"
       exit 1
       ;;
   esac

@@ -2,6 +2,16 @@
 
 set -euo pipefail
 
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck source=../lib/platform.sh
+source "$script_dir/../lib/platform.sh"
+
+if is_macos; then
+    echo "Skipping rofi: X11-only application launcher, not available on macOS"
+    echo "Consider Raycast or Alfred as alternatives."
+    exit 0
+fi
+
 if command -v rofi &>/dev/null; then
     echo "rofi already installed, skipping"
     exit 0

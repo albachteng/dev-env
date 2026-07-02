@@ -2,13 +2,16 @@
 
 set -euo pipefail
 
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck source=../lib/platform.sh
+source "$script_dir/../lib/platform.sh"
+
 GO_VERSION="${GO_VERSION:-1.22.0}"
 
 if command -v go &>/dev/null; then
     installed_version=$(go version | awk '{print $3}' | sed 's/go//')
     echo "Go already installed (version $installed_version)"
 
-    # Check if we want to upgrade
     if [ "$installed_version" = "$GO_VERSION" ]; then
         echo "Desired version already installed, skipping"
         exit 0
@@ -18,16 +21,22 @@ fi
 
 echo "Installing Go $GO_VERSION..."
 
-# Download and install Go
+# Compute OS name for the download URL
+if is_macos; then
+    os_name="darwin"
+else
+    os_name="linux"
+fi
+
+archive="go${GO_VERSION}.${os_name}-${ARCH}.tar.gz"
+
 cd /tmp
-wget "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz"
+wget "https://go.dev/dl/${archive}"
 
-# Remove old installation and install new
 sudo rm -rf /usr/local/go
-sudo tar -C /usr/local -xzf "go${GO_VERSION}.linux-amd64.tar.gz"
-rm "go${GO_VERSION}.linux-amd64.tar.gz"
+sudo tar -C /usr/local -xzf "${archive}"
+rm "${archive}"
 
-# Ensure Go is in PATH for this session
 export PATH="$PATH:/usr/local/go/bin"
 export GOPATH="$HOME/go"
 export PATH="$PATH:$GOPATH/bin"

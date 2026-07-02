@@ -2,9 +2,18 @@
 
 set -euo pipefail
 
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck source=../lib/platform.sh
+source "$script_dir/../lib/platform.sh"
+
 if command -v tmux &>/dev/null; then
     echo "tmux already installed, skipping"
     exit 0
 fi
 
-sudo apt install -y tmux
+if is_macos; then
+    ensure_brew
+    brew install tmux
+else
+    sudo apt install -y tmux
+fi

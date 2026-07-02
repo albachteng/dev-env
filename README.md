@@ -1,6 +1,6 @@
 # dev-env
 
-A modular, idempotent development environment setup system for quickly bootstrapping Linux machines (primarily Ubuntu/Debian, with some cross-platform support).
+A modular, idempotent development environment setup system for quickly bootstrapping Linux (Ubuntu/Debian) and macOS machines.
 
 ## Features
 
@@ -10,7 +10,7 @@ A modular, idempotent development environment setup system for quickly bootstrap
 - **Flexible filtering**: Choose specific tools to install or filter out unwanted ones
 - **Automatic backups**: Configuration files are backed up before being replaced
 - **Teardown/reset capability**: Clean up installations and restore original configs
-- **Cross-platform ready**: Some scripts support multiple package managers (apt, pacman)
+- **Cross-platform**: Supports Linux (apt/pacman) and macOS (Homebrew) via a shared platform library
 - **Error handling**: All scripts use `set -euo pipefail` for safer execution
 
 ## Quick Start
@@ -41,6 +41,8 @@ dev-env/
 ├── run                  # Installation orchestrator
 ├── teardown             # Teardown/reset script
 ├── .profile             # Shell profile additions
+├── lib/
+│   └── platform.sh      # OS/arch detection and package manager helpers
 ├── runs/                # Individual installation scripts
 │   ├── 01-libs          # Base tools (git, curl, build-essential, etc.)
 │   ├── 02-go            # Go programming language
@@ -328,12 +330,43 @@ Automatically runs when starting a new tmux session via tmux-sessionizer:
 
 ## Platform Support
 
-The system primarily targets **Ubuntu/Debian** with apt, but some scripts support:
+Platform detection is automatic via `uname`. Use `--mac` to override:
 
+```bash
+./run --mac          # force macOS mode (useful for testing)
+./run --mac --dry    # preview macOS install plan
+```
+
+### Linux (Ubuntu/Debian)
+- Full support via `apt`
 - **Arch Linux**: via pacman (clangd)
 - **WSL2 Ubuntu**: Fully supported
 
-Cross-platform improvements are ongoing.
+### macOS
+Requires [Homebrew](https://brew.sh) — installed automatically if missing.
+
+| Tool | macOS behaviour |
+|---|---|
+| base libs | `brew install` with native package names |
+| Go | official tarball, `darwin-amd64` / `darwin-arm64` |
+| Node | `brew install node`, then `n` for version management |
+| clangd | `brew install llvm`, symlinked to `~/.local/bin` |
+| Lua LSP | official `darwin` release binary |
+| Neovim | built from source (deps via `brew`) |
+| tmux / zsh / ansible / gh | `brew install` |
+| Docker | `brew install --cask docker` (requires opening Docker.app once) |
+| lazygit | official `Darwin` release binary |
+| dive | `brew install dive` |
+| rofi | **skipped** (X11-only; use Raycast or Alfred instead) |
+| gdb/GEF | **skipped** (use `lldb` instead) |
+
+### Platform library
+
+All detection logic lives in `lib/platform.sh`. Individual scripts source it and use:
+- `is_macos` / `is_linux` — conditional helpers
+- `pkg_install` — dispatches to `brew` or `apt-get`
+- `npm_global_install` — omits `sudo` on macOS
+- `ensure_brew` — installs Homebrew if absent (no-op on Linux)
 
 ## Dependency Ordering
 

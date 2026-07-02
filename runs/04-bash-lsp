@@ -12,5 +12,9 @@ if ! command -v npm &>/dev/null; then
     exit 1
 fi
 
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck source=../lib/platform.sh
+source "$script_dir/../lib/platform.sh"
+
 echo "installing bash lsp..."
-sudo npm install -g bash-language-server
+npm_global_install bash-language-server

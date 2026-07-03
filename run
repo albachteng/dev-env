@@ -92,7 +92,7 @@ log "filter: '$filter' | choose: '$choose'"
 
 cd "$script_dir"
 
-scripts=$(find ./runs -maxdepth 1 -mindepth 1 -executable -type f | sort)
+scripts=$(find ./runs -maxdepth 1 -mindepth 1 -perm /111 -type f | sort)
 
 for script in $scripts; do
   # If choose is set, only run scripts matching the pattern

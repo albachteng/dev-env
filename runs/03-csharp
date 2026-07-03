@@ -20,7 +20,7 @@ echo "Installing .NET SDK $DOTNET_VERSION..."
 
 # Download and run Microsoft's official installation script
 cd /tmp
-wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
+curl -fLo dotnet-install.sh https://dot.net/v1/dotnet-install.sh
 chmod +x dotnet-install.sh
 
 # Install to user directory to avoid sudo requirements

@@ -16,11 +16,6 @@ echo "installing lua lsp..."
 mkdir -p "$HOME/.local/bin"
 cd "$HOME/.local/bin"
 
-if ! command -v wget &>/dev/null; then
-    echo "wget not found, installing..."
-    pkg_install wget
-fi
-
 # Map platform/arch to the release archive naming convention
 if is_macos; then
     os_label="darwin"
@@ -34,7 +29,7 @@ else
     arch_label="x64"
 fi
 
-wget -O lua-language-server.tar.gz \
+curl -fLo lua-language-server.tar.gz \
     "https://github.com/LuaLS/lua-language-server/releases/download/3.13.6/lua-language-server-3.13.6-${os_label}-${arch_label}.tar.gz"
 tar -xzf lua-language-server.tar.gz
 rm lua-language-server.tar.gz

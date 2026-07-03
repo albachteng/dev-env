@@ -31,7 +31,7 @@ fi
 archive="go${GO_VERSION}.${os_name}-${ARCH}.tar.gz"
 
 cd /tmp
-wget "https://go.dev/dl/${archive}"
+curl -fLO "https://go.dev/dl/${archive}"
 
 sudo rm -rf /usr/local/go
 sudo tar -C /usr/local -xzf "${archive}"

@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-version="${NVIM_VERSION:-v0.10.2}"
+version="${NVIM_VERSION:-v0.11.0}"
 
 echo "Installing neovim version: $version"
 

@@ -51,7 +51,7 @@ dev-env/
 │   ├── 04-bash-lsp      # Bash language server
 │   ├── 04-clangd        # C/C++ language server
 │   ├── 04-csharp-lsp    # C# language server
-│   ├── 04-go-tools      # Go dev tools (golangci-lint, delve, air)
+│   ├── 04-go-tools      # Go dev tools (staticcheck, delve, air)
 │   ├── 04-gopls         # Go language server
 │   ├── 04-js-tools      # JS package managers (pnpm, yarn)
 │   ├── 04-lua-lsp       # Lua language server
@@ -274,7 +274,7 @@ export GIT_USER_NAME="Your Name"
 - **TypeScript LSP**: typescript-language-server
 
 **Go Development Tools:**
-- **golangci-lint**: Comprehensive linter
+- **staticcheck**: Static analysis / linter
 - **delve (dlv)**: Debugger
 - **air**: Live reload for development
 
@@ -430,7 +430,11 @@ export GIT_USER_NAME="Your Name"
 Ensure you have build dependencies:
 
 ```bash
+# Linux
 sudo apt install -y cmake gettext lua5.1 liblua5.1-0-dev
+
+# macOS
+brew install cmake gettext ninja
 ```
 
 ## Contributing

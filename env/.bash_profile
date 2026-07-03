@@ -2,7 +2,7 @@ VIM="nvim"
 DEV_ENV="$HOME/dev-env"
 
 ## All that sweet sweet fzf
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash
 
 export GIT_EDITOR=$VIM
 
@@ -11,7 +11,7 @@ dev_env() {
 }
 
 # Where should I put you?
-bindkey -s ^f "tmux-sessionizer\n"
+bind -x '"\C-f":"tmux-sessionizer"'
 
 catr() {
     tail -n "+$1" $3 | head -n "$(($2 - $1 + 1))"

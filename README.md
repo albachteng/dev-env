@@ -1,6 +1,6 @@
 # dev-env
 
-A modular, idempotent development environment setup system for quickly bootstrapping Linux machines (primarily Ubuntu/Debian, with some cross-platform support).
+A modular, idempotent development environment setup system for quickly bootstrapping Linux (Ubuntu/Debian) and macOS machines.
 
 ## Features
 
@@ -10,7 +10,7 @@ A modular, idempotent development environment setup system for quickly bootstrap
 - **Flexible filtering**: Choose specific tools to install or filter out unwanted ones
 - **Automatic backups**: Configuration files are backed up before being replaced
 - **Teardown/reset capability**: Clean up installations and restore original configs
-- **Cross-platform ready**: Some scripts support multiple package managers (apt, pacman)
+- **Cross-platform**: Supports Linux (apt/pacman) and macOS (Homebrew) via a shared platform library
 - **Error handling**: All scripts use `set -euo pipefail` for safer execution
 
 ## Quick Start
@@ -41,13 +41,17 @@ dev-env/
 ├── run                  # Installation orchestrator
 ├── teardown             # Teardown/reset script
 ├── .profile             # Shell profile additions
+├── lib/
+│   └── platform.sh      # OS/arch detection and package manager helpers
 ├── runs/                # Individual installation scripts
 │   ├── 01-libs          # Base tools (git, curl, build-essential, etc.)
 │   ├── 02-go            # Go programming language
+│   ├── 03-csharp        # .NET SDK
 │   ├── 03-node          # Node.js and npm via n
 │   ├── 04-bash-lsp      # Bash language server
 │   ├── 04-clangd        # C/C++ language server
-│   ├── 04-go-tools      # Go dev tools (golangci-lint, delve, air)
+│   ├── 04-csharp-lsp    # C# language server
+│   ├── 04-go-tools      # Go dev tools (staticcheck, delve, air)
 │   ├── 04-gopls         # Go language server
 │   ├── 04-js-tools      # JS package managers (pnpm, yarn)
 │   ├── 04-lua-lsp       # Lua language server
@@ -71,8 +75,10 @@ dev-env/
     │       ├── dev-env
     │       └── ready-tmux
     ├── .ready-tmux          # Default tmux session startup script
-    ├── .zshrc
-    ├── .zsh_profile
+    ├── .bashrc              # Bash configuration
+    ├── .bash_profile        # Bash profile with PATH setup
+    ├── .zshrc               # Zsh configuration
+    ├── .zsh_profile         # Zsh profile with PATH setup
     └── tmux-sessionizer
 ```
 
@@ -113,6 +119,9 @@ Use the `--filter` flag to skip tools:
 
 # Install only Go tools (language + lsp + dev tools)
 ./run --choose go
+
+# Install only C# tools (.NET SDK + language server)
+./run --choose csharp
 
 # Install only Docker
 ./run --choose docker
@@ -188,6 +197,14 @@ export GO_VERSION="1.23.0"
 ./run --choose go
 ```
 
+### DOTNET_VERSION
+.NET SDK major version to install. Defaults to `10.0` (LTS). Note: csharp-ls language server requires .NET 10+.
+
+```bash
+export DOTNET_VERSION="8.0"
+./run --choose csharp
+```
+
 ### NVIM_VERSION
 Neovim version to install. Defaults to `v0.10.2`.
 
@@ -239,6 +256,7 @@ export GIT_USER_NAME="Your Name"
 
 ### Programming Languages
 - **Go**: Official Go installation (v1.22.0 by default, configurable via GO_VERSION)
+- **C#/.NET**: .NET SDK (v10.0 LTS by default, configurable via DOTNET_VERSION)
 - **Node.js**: via n (Node version manager)
 
 ### Development Environment
@@ -251,11 +269,12 @@ export GIT_USER_NAME="Your Name"
 - **Bash LSP**: bash-language-server
 - **Lua LSP**: lua-language-server (v3.13.6)
 - **Clangd**: C/C++ language server
+- **C# LSP**: csharp-ls (C# language server)
 - **Gopls**: Go language server
 - **TypeScript LSP**: typescript-language-server
 
 **Go Development Tools:**
-- **golangci-lint**: Comprehensive linter
+- **staticcheck**: Static analysis / linter
 - **delve (dlv)**: Debugger
 - **air**: Live reload for development
 
@@ -279,14 +298,16 @@ export GIT_USER_NAME="Your Name"
 
 The system deploys several configuration files:
 
+- **`.bashrc`**: Bash configuration
+- **`.bash_profile`**: Bash profile with custom PATH setup and shell functions
 - **`.zshrc`**: Zsh configuration with oh-my-zsh
-- **`.zsh_profile`**: Custom PATH setup and shell functions
+- **`.zsh_profile`**: Zsh profile with custom PATH setup and shell functions
 - **`tmux.conf`**: Tmux configuration with vi keybindings
 - **`tmux-sessionizer`**: FZF-based tmux session launcher
 
 ### Key Features in Configs
 
-**Zsh Profile**:
+**Bash/Zsh Profile**:
 - Intelligent PATH management (avoids duplicates)
 - FZF integration
 - Custom utility functions: `catr()`, `cat1Line()`
@@ -309,12 +330,43 @@ Automatically runs when starting a new tmux session via tmux-sessionizer:
 
 ## Platform Support
 
-The system primarily targets **Ubuntu/Debian** with apt, but some scripts support:
+Platform detection is automatic via `uname`. Use `--mac` to override:
 
+```bash
+./run --mac          # force macOS mode (useful for testing)
+./run --mac --dry    # preview macOS install plan
+```
+
+### Linux (Ubuntu/Debian)
+- Full support via `apt`
 - **Arch Linux**: via pacman (clangd)
 - **WSL2 Ubuntu**: Fully supported
 
-Cross-platform improvements are ongoing.
+### macOS
+Requires [Homebrew](https://brew.sh) — installed automatically if missing.
+
+| Tool | macOS behaviour |
+|---|---|
+| base libs | `brew install` with native package names |
+| Go | official tarball, `darwin-amd64` / `darwin-arm64` |
+| Node | `brew install node`, then `n` for version management |
+| clangd | `brew install llvm`, symlinked to `~/.local/bin` |
+| Lua LSP | official `darwin` release binary |
+| Neovim | built from source (deps via `brew`) |
+| tmux / zsh / ansible / gh | `brew install` |
+| Docker | `brew install --cask docker` (requires opening Docker.app once) |
+| lazygit | official `Darwin` release binary |
+| dive | `brew install dive` |
+| rofi | **skipped** (X11-only; use Raycast or Alfred instead) |
+| gdb/GEF | **skipped** (use `lldb` instead) |
+
+### Platform library
+
+All detection logic lives in `lib/platform.sh`. Individual scripts source it and use:
+- `is_macos` / `is_linux` — conditional helpers
+- `pkg_install` — dispatches to `brew` or `apt-get`
+- `npm_global_install` — omits `sudo` on macOS
+- `ensure_brew` — installs Homebrew if absent (no-op on Linux)
 
 ## Dependency Ordering
 
@@ -352,6 +404,12 @@ chmod +x run dev-env runs/*
 Source your shell profile or restart your shell:
 
 ```bash
+# For bash
+source ~/.bashrc
+# or
+exec bash
+
+# For zsh
 source ~/.zshrc
 # or
 exec zsh
@@ -372,7 +430,11 @@ export GIT_USER_NAME="Your Name"
 Ensure you have build dependencies:
 
 ```bash
+# Linux
 sudo apt install -y cmake gettext lua5.1 liblua5.1-0-dev
+
+# macOS
+brew install cmake gettext ninja
 ```
 
 ## Contributing

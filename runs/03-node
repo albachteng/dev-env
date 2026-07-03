@@ -2,21 +2,29 @@
 
 set -euo pipefail
 
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck source=../lib/platform.sh
+source "$script_dir/../lib/platform.sh"
+
 # Check if n is already installed and node is at LTS
 if command -v n &>/dev/null && command -v node &>/dev/null; then
     echo "Node.js and n already installed, skipping"
     exit 0
 fi
 
-sudo apt install -y nodejs npm
-npm config set prefix "$HOME/.local/npm"
-npm i -g n
+if is_macos; then
+    ensure_brew
+    brew install node
+else
+    sudo apt install -y nodejs npm
+fi
 
-# Configure n to install to user directory
+npm config set prefix "$HOME/.local/npm"
+npm_global_install n
+
 export N_PREFIX="$HOME/.local/n"
 mkdir -p "$N_PREFIX"
 
-# Add npm bin and n bin to PATH for this session
 export PATH="$HOME/.local/npm/bin:$N_PREFIX/bin:$PATH"
 
 n lts

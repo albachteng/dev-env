@@ -30,17 +30,35 @@ while [[ $# -gt 0 ]]; do
       shift
       choose="$1"
       ;;
+    --mac)
+      export PLATFORM="macos"
+      ;;
     *)
       echo "Unknown option: $1"
-      echo "Usage: $0 [--dry] [--filter PATTERN] [--choose PATTERN]"
+      echo "Usage: $0 [--dry] [--filter PATTERN] [--choose PATTERN] [--mac]"
       echo "  --dry: Show what would be executed without running"
       echo "  --filter PATTERN: Skip scripts matching PATTERN"
       echo "  --choose PATTERN: Only run scripts matching PATTERN"
+      echo "  --mac: Force macOS mode (default: auto-detected via uname)"
       exit 1
       ;;
   esac
   shift
 done
+
+# Pre-populate all known installation paths so later scripts can find tools
+# installed by earlier ones without requiring a shell restart.
+# It's safe to add paths that don't exist yet — the lookup only happens when
+# a binary is actually invoked.
+export PATH="$HOME/.local/bin:$HOME/.local/npm/bin:$HOME/.local/n/bin:/usr/local/go/bin:$HOME/go/bin:$HOME/.dotnet:$HOME/.dotnet/tools:$PATH"
+
+# Homebrew (macOS) — bring it into PATH if installed but not yet active.
+# This covers the case where ensure_brew just installed it in a subscript.
+if [[ -x /opt/homebrew/bin/brew ]]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [[ -x /usr/local/bin/brew ]]; then
+    eval "$(/usr/local/bin/brew shellenv)"
+fi
 
 log() {
   if [[ $dry == "1" ]]; then
@@ -74,9 +92,9 @@ log "filter: '$filter' | choose: '$choose'"
 
 cd "$script_dir"
 
-scripts=$(find ./runs -maxdepth 1 -mindepth 1 -executable -type f | sort)
+for script in $(find ./runs -maxdepth 1 -mindepth 1 -type f | sort); do
+  [[ -x "$script" ]] || continue
 
-for script in $scripts; do
   # If choose is set, only run scripts matching the pattern
   if [[ -n "$choose" ]]; then
     if ! echo "$script" | grep -q "$choose"; then

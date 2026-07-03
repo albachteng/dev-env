@@ -12,7 +12,6 @@ echo "Installing Go development tools..."
 # Check what's already installed
 declare -a tools_to_install=()
 
-command -v golangci-lint &>/dev/null || tools_to_install+=("golangci-lint")
 command -v staticcheck &>/dev/null || tools_to_install+=("staticcheck")
 command -v gofumpt &>/dev/null || tools_to_install+=("gofumpt")
 command -v dlv &>/dev/null || tools_to_install+=("delve")
@@ -29,12 +28,6 @@ if [ ${#tools_to_install[@]} -eq 0 ]; then
 fi
 
 echo "Installing: ${tools_to_install[*]}"
-
-# Install golangci-lint (meta-linter running multiple linters)
-if [[ " ${tools_to_install[*]} " =~ " golangci-lint " ]]; then
-    echo "Installing golangci-lint..."
-    curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$HOME/go/bin"
-fi
 
 # Install staticcheck (state-of-the-art Go linter)
 if [[ " ${tools_to_install[*]} " =~ " staticcheck " ]]; then

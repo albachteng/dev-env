@@ -2,10 +2,19 @@
 
 set -euo pipefail
 
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck source=../lib/platform.sh
+source "$script_dir/../lib/platform.sh"
+
 if command -v ansible &>/dev/null; then
     echo "ansible already installed, skipping"
     exit 0
 fi
 
 echo "Installing ansible..."
-sudo apt install -y ansible
+if is_macos; then
+    ensure_brew
+    brew install ansible
+else
+    sudo apt install -y ansible
+fi

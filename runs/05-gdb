@@ -2,6 +2,15 @@
 
 set -euo pipefail
 
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck source=../lib/platform.sh
+source "$script_dir/../lib/platform.sh"
+
+if is_macos; then
+    echo "Skipping GEF/GDB: not supported on macOS (GDB requires code signing; use lldb instead)"
+    exit 0
+fi
+
 if [ -f "$HOME/.gdbinit-gef.py" ]; then
     echo "GEF already installed, skipping"
     exit 0

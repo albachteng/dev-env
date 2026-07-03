@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+DOTNET_VERSION="${DOTNET_VERSION:-10.0}"
+
+if command -v dotnet &>/dev/null; then
+    installed_version=$(dotnet --version | cut -d'.' -f1)
+    echo ".NET SDK already installed (version $(dotnet --version))"
+
+    # Check if we want to upgrade
+    if [ "$installed_version" = "$DOTNET_VERSION" ]; then
+        echo "Desired major version already installed, skipping"
+        exit 0
+    fi
+    echo "Installing version $DOTNET_VERSION..."
+fi
+
+echo "Installing .NET SDK $DOTNET_VERSION..."
+
+# Download and run Microsoft's official installation script
+cd /tmp
+curl -fLo dotnet-install.sh https://dot.net/v1/dotnet-install.sh
+chmod +x dotnet-install.sh
+
+# Install to user directory to avoid sudo requirements
+export DOTNET_ROOT="$HOME/.dotnet"
+./dotnet-install.sh --channel "$DOTNET_VERSION" --install-dir "$DOTNET_ROOT"
+rm dotnet-install.sh
+
+# Ensure dotnet is in PATH for this session
+export PATH="$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools"
+
+echo ".NET SDK $DOTNET_VERSION installed successfully"
+dotnet --version

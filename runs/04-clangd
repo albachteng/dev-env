@@ -2,13 +2,23 @@
 
 set -euo pipefail
 
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck source=../lib/platform.sh
+source "$script_dir/../lib/platform.sh"
+
 if command -v clangd &>/dev/null; then
     echo "clangd already installed, skipping"
     exit 0
 fi
 
 echo "installing clangd..."
-if command -v apt &>/dev/null; then
+if is_macos; then
+    ensure_brew
+    brew install llvm
+    # clangd lives inside llvm's prefix; symlink it to ~/.local/bin which is on PATH
+    mkdir -p "$HOME/.local/bin"
+    ln -sf "$(brew --prefix llvm)/bin/clangd" "$HOME/.local/bin/clangd"
+elif command -v apt &>/dev/null; then
     sudo apt install -y clangd
 elif command -v pacman &>/dev/null; then
     sudo pacman -S --noconfirm clang

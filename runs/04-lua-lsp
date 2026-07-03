@@ -2,6 +2,10 @@
 
 set -euo pipefail
 
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck source=../lib/platform.sh
+source "$script_dir/../lib/platform.sh"
+
 if [ -d "$HOME/.local/bin/lua-language-server" ]; then
     echo "lua-language-server already installed, skipping"
     exit 0
@@ -12,12 +16,21 @@ echo "installing lua lsp..."
 mkdir -p "$HOME/.local/bin"
 cd "$HOME/.local/bin"
 
-if ! command -v wget &>/dev/null; then
-  echo "wget not found, installing..."
-  sudo apt update && sudo apt install -y wget
+# Map platform/arch to the release archive naming convention
+if is_macos; then
+    os_label="darwin"
+else
+    os_label="linux"
+fi
+# LuaLS uses "x64" for amd64
+if [[ "$ARCH" == "arm64" ]]; then
+    arch_label="arm64"
+else
+    arch_label="x64"
 fi
 
-wget -O lua-language-server.tar.gz https://github.com/LuaLS/lua-language-server/releases/download/3.13.6/lua-language-server-3.13.6-linux-x64.tar.gz
+curl -fLo lua-language-server.tar.gz \
+    "https://github.com/LuaLS/lua-language-server/releases/download/3.13.6/lua-language-server-3.13.6-${os_label}-${arch_label}.tar.gz"
 tar -xzf lua-language-server.tar.gz
 rm lua-language-server.tar.gz
 echo "finished installing lua lsp"

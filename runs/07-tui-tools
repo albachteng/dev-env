@@ -11,7 +11,7 @@ echo "Installing TUI (Terminal UI) tools..."
 # Install lazygit
 if ! command -v lazygit &>/dev/null; then
     echo "Installing lazygit..."
-    LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
+    LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | jq -r '.tag_name | ltrimstr("v")')
     cd /tmp
     if is_macos; then
         # macOS releases use "Darwin" and the native arch label (x86_64 or arm64)
